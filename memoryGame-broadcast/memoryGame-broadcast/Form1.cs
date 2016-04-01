@@ -323,6 +323,7 @@ namespace memoryGame_broadcast
                 int i = Convert.ToInt16(b.Name.Substring(0, 1));
                 int j = Convert.ToInt16(b.Name.Substring(1, 1));
                 matButtons[i, j].Image = matImages[i, j];
+                matButtons[i, j].Refresh();
                 enviarCommand();
 
                 if ((x != 6) && (y != 6))
@@ -507,11 +508,5 @@ namespace memoryGame_broadcast
                 Application.Exit();
             }
         }
-
-        private void btnOcultarImages_Click(object sender, EventArgs e)
-        {
-            OcultarImages();
-        }
-
     }
 }
