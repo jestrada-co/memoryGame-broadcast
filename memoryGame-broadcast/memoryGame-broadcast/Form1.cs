@@ -33,6 +33,9 @@ namespace memoryGame_broadcast
         int intIndice = 0;
         int x = 6;
         int y = 6;
+        int puntajeYo = 0;
+        int puntajeTu = 0;
+        bool token;
 
         public frmMain()
         {
@@ -96,13 +99,6 @@ namespace memoryGame_broadcast
 
         private void ejecutor()
         {
-            // 0 Recibir Invitación a nuevo juego
-            // 1 no Acepto invitación u Ocupado jugando
-            // 2 Acepto invitación
-            // 3 partida cancelada por el otro jugador, tu ganas
-            // 4 jugada
-            // 5
-
             int intCommand = Convert.ToInt16(strCommand.Substring(0, 1));
 
             if (intCommand == 0)
@@ -116,12 +112,12 @@ namespace memoryGame_broadcast
                     DialogResult aceptarGame = MessageBox.Show("El jugador con IP " + dirIp + " te ha invitado a un Game. Deseas Aceptar?", "Invitación a un Game", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (aceptarGame == DialogResult.Yes)
                     {
+                        token = false;
+                        lblToken.Invoke(new EventHandler(establecerToken));
                         strCommand = "2";
                         dirIpOponente = dirIp;
                         starter = true;
-                        //btnStartGame.Enabled = false;
                         randomImages();
-                        //MostrarImages();
                         strCommand = strCommand + tablero;
                     }
                     else
@@ -141,19 +137,21 @@ namespace memoryGame_broadcast
                 {
                     if (intCommand == 2)
                     {
-                        //btnStartGame.Enabled = false;
                         starter = true;
                         dirIpOponente = dirIp;
                         MessageBox.Show("El jugador con IP " + dirIpOponente + " aceptó la invitación. Ahora es tu turno!", "Juego en curso...", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         replicarRandomImages();
-                        //MostrarImages();
+                        token = true;
+                        lblToken.Invoke(new EventHandler(establecerToken));
                     }
                     else
                     {
                         if (intCommand == 3)
                         {
-                            MessageBox.Show("el otro jugador canceló la partida. tu ganas");
+                            MessageBox.Show("El jugador "+ dirIpOponente + " canceló la partida. Tu ganas!","Game Over",MessageBoxButtons.OK,MessageBoxIcon.Information);
                             starter = false;
+                            terminarApp();
+                            Application.Exit();
                         }
                         else
                         {
@@ -168,12 +166,17 @@ namespace memoryGame_broadcast
                             {
                                 if (intCommand == 5)
                                 {
-
+                                    puntajeTu++;
+                                    txtPlayers.Invoke(new EventHandler(imprimirEstadisticas));
+                                    token = false;
+                                    lblToken.Invoke(new EventHandler(establecerToken));
                                 }
                                 else
                                 {
                                     if (intCommand == 6)
                                     {
+                                        token = true;
+                                        lblToken.Invoke(new EventHandler(establecerToken));
                                         matButtons[Convert.ToInt16(strCommand.Substring(1, 1)), Convert.ToInt16(strCommand.Substring(2, 1))].Image = imgListNone.Images[0];
                                         matButtons[Convert.ToInt16(strCommand.Substring(3, 1)), Convert.ToInt16(strCommand.Substring(4, 1))].Image = imgListNone.Images[0];
                                     }
@@ -186,6 +189,26 @@ namespace memoryGame_broadcast
 
         }
 
+        private void imprimirEstadisticas(object sender, EventArgs e)
+        {
+            txtPlayers.Text = "Mi Puntaje: " + puntajeYo.ToString();
+            txtPlayers.Text = txtPlayers.Text + "\r\n" + "Oponente : " + puntajeTu.ToString();
+        }
+
+        private void establecerToken(object sender, EventArgs e)
+        {
+            if (token)
+            {
+                lblToken.BackColor = Color.Green;
+                lblToken.Text = "Tu Turno";
+            }
+            else
+            {
+                lblToken.Text = "Espera...";
+                lblToken.BackColor = Color.Red;
+            }
+        }
+
         private void jugada()
         {
             int i = Convert.ToInt16(strCommand.Substring(1, 1));
@@ -196,7 +219,7 @@ namespace memoryGame_broadcast
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            terminarApp();
+            btnExit_Click(null,null);
         }
 
         private void terminarApp()
@@ -245,9 +268,9 @@ namespace memoryGame_broadcast
             {
                 for (int j = 0; j <= 5; j++)
                 {
-                    int num = obtenerIndice();
-                    matImages[i, j] = imgListGame1.Images[num];
-                    matMatch[i, j] = num;
+                    int numTemp = obtenerIndice();
+                    matImages[i, j] = imgListGame1.Images[numTemp];
+                    matMatch[i, j] = numTemp;
                 }
             }
         }
@@ -267,40 +290,49 @@ namespace memoryGame_broadcast
 
         private void matButtons_Click(object sender, EventArgs e)
         {
-            Button b = (Button)sender;
-            strCommand = "4" + b.Name;
-            int i = Convert.ToInt16(b.Name.Substring(0, 1));
-            int j = Convert.ToInt16(b.Name.Substring(1, 1));
-            matButtons[i, j].Image = matImages[i, j];
-            enviarCommand();
-
-            if ((x != 6) && (y != 6))
+            if (token)
             {
-                bool sw = true;
-                if ((x == i) && (y == j))
+                Button b = (Button)sender;
+                strCommand = "4" + b.Name;
+                int i = Convert.ToInt16(b.Name.Substring(0, 1));
+                int j = Convert.ToInt16(b.Name.Substring(1, 1));
+                matButtons[i, j].Image = matImages[i, j];
+                enviarCommand();
+
+                if ((x != 6) && (y != 6))
                 {
-                    sw = false;
-                }
-                if ((matMatch[i,j] == matMatch[x, y]) && sw )
-                {
-                    MessageBox.Show("Match");
-                    strCommand = "5" + i.ToString() + j.ToString() + x.ToString() + y.ToString();
+                    bool sw = true;
+                    if ((x == i) && (y == j))
+                    {
+                        sw = false;
+                    }
+                    if ((matMatch[i, j] == matMatch[x, y]) && (sw))
+                    {
+                        token = true;
+                        lblToken.Invoke(new EventHandler(establecerToken));
+                        strCommand = "5";
+                        puntajeYo++;
+                        txtPlayers.Invoke(new EventHandler(imprimirEstadisticas));
+
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                        matButtons[x, y].Image = imgListNone.Images[0];
+                        matButtons[i, j].Image = imgListNone.Images[0];
+                        strCommand = "6" + i.ToString() + j.ToString() + x.ToString() + y.ToString();
+                        token = false;
+                        lblToken.Invoke(new EventHandler(establecerToken));
+                    }
+                    enviarCommand();
+                    x = 6;
+                    y = 6;
                 }
                 else
                 {
-                    Thread.Sleep(1000);
-                    matButtons[x, y].Image = imgListNone.Images[0];
-                    matButtons[i, j].Image = imgListNone.Images[0];
-                    strCommand = "6" + i.ToString() + j.ToString() + x.ToString() + y.ToString();
+                    x = i;
+                    y = j;
                 }
-                enviarCommand();
-                x = 6;
-                y = 6;
-            }
-            else
-            {
-                x = i;
-                y = j;
             }
         }
 
@@ -350,6 +382,7 @@ namespace memoryGame_broadcast
                             }
                             rango2.Add(num);
                             matImages[i, j] = imgListGame2.Images[num];
+                            matMatch[i, j] = num;
                             tablero = tablero + num.ToString() + "@";
                         }
                     }
@@ -395,8 +428,14 @@ namespace memoryGame_broadcast
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            terminarApp();
-            Application.Exit();
+            DialogResult gameOver = MessageBox.Show("¿Desea terminar el juego y perder?","Game Over",MessageBoxButtons.YesNo,MessageBoxIcon.Question);
+            if(gameOver == DialogResult.Yes)
+            {
+                strCommand = "3";
+                enviarCommand();
+                terminarApp();
+                Application.Exit();
+            }
         }
 
         private void btnOcultarImages_Click(object sender, EventArgs e)
@@ -404,9 +443,5 @@ namespace memoryGame_broadcast
             OcultarImages();
         }
 
-        private void btnStartGame_DragLeave(object sender, EventArgs e)
-        {
-
-        }
     }
 }

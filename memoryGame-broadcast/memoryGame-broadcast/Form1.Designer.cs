@@ -37,8 +37,8 @@
             this.btnExit = new System.Windows.Forms.Button();
             this.txtPlayers = new System.Windows.Forms.TextBox();
             this.imgListGame2 = new System.Windows.Forms.ImageList(this.components);
-            this.btnOcultarImages = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.lblToken = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // imgListGame1
@@ -93,7 +93,6 @@
             this.btnStartGame.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.btnStartGame.UseVisualStyleBackColor = false;
             this.btnStartGame.Click += new System.EventHandler(this.btnStartGame_Click);
-            this.btnStartGame.DragLeave += new System.EventHandler(this.btnStartGame_DragLeave);
             // 
             // btnExit
             // 
@@ -114,10 +113,12 @@
             // 
             // txtPlayers
             // 
-            this.txtPlayers.Location = new System.Drawing.Point(570, 58);
+            this.txtPlayers.Font = new System.Drawing.Font("Calibri", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtPlayers.ForeColor = System.Drawing.Color.DarkBlue;
+            this.txtPlayers.Location = new System.Drawing.Point(229, 12);
             this.txtPlayers.Multiline = true;
             this.txtPlayers.Name = "txtPlayers";
-            this.txtPlayers.Size = new System.Drawing.Size(191, 164);
+            this.txtPlayers.Size = new System.Drawing.Size(113, 40);
             this.txtPlayers.TabIndex = 3;
             // 
             // imgListGame2
@@ -143,23 +144,6 @@
             this.imgListGame2.Images.SetKeyName(16, "wordpress.png");
             this.imgListGame2.Images.SetKeyName(17, "youtube.png");
             // 
-            // btnOcultarImages
-            // 
-            this.btnOcultarImages.BackColor = System.Drawing.Color.White;
-            this.btnOcultarImages.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnOcultarImages.Font = new System.Drawing.Font("Calibri", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnOcultarImages.ForeColor = System.Drawing.Color.MediumBlue;
-            this.btnOcultarImages.Image = ((System.Drawing.Image)(resources.GetObject("btnOcultarImages.Image")));
-            this.btnOcultarImages.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnOcultarImages.Location = new System.Drawing.Point(238, 12);
-            this.btnOcultarImages.Name = "btnOcultarImages";
-            this.btnOcultarImages.Size = new System.Drawing.Size(150, 40);
-            this.btnOcultarImages.TabIndex = 1;
-            this.btnOcultarImages.Text = "Ocultar Imagenes";
-            this.btnOcultarImages.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.btnOcultarImages.UseVisualStyleBackColor = false;
-            this.btnOcultarImages.Click += new System.EventHandler(this.btnOcultarImages_Click);
-            // 
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.White;
@@ -168,16 +152,30 @@
             this.panel1.Size = new System.Drawing.Size(552, 551);
             this.panel1.TabIndex = 4;
             // 
+            // lblToken
+            // 
+            this.lblToken.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.lblToken.Font = new System.Drawing.Font("Calibri", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblToken.ForeColor = System.Drawing.Color.DarkBlue;
+            this.lblToken.Location = new System.Drawing.Point(348, 12);
+            this.lblToken.Name = "lblToken";
+            this.lblToken.Size = new System.Drawing.Size(129, 40);
+            this.lblToken.TabIndex = 5;
+            this.lblToken.Text = "Juego no Iniciado";
+            this.lblToken.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(766, 621);
+            this.ClientSize = new System.Drawing.Size(579, 621);
+            this.Controls.Add(this.lblToken);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.txtPlayers);
             this.Controls.Add(this.btnExit);
-            this.Controls.Add(this.btnOcultarImages);
             this.Controls.Add(this.btnStartGame);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
             this.Name = "frmMain";
             this.Text = "MemoryGame Broadcast";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
@@ -195,8 +193,8 @@
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.TextBox txtPlayers;
         private System.Windows.Forms.ImageList imgListGame2;
-        private System.Windows.Forms.Button btnOcultarImages;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label lblToken;
     }
 }
 
