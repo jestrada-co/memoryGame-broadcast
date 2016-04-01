@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
@@ -44,28 +40,34 @@ namespace memoryGame_broadcast
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            
-            int intPuertoLocal;
-            DialogResult TipoGame = MessageBox.Show("Desea realizar una simulación local del juego?","Seleccinar tipo de Juego",MessageBoxButtons.YesNo,MessageBoxIcon.Question);
-            if (TipoGame  == DialogResult.Yes)
+            try
             {
-                string strPuerto = Microsoft.VisualBasic.Interaction.InputBox("Digite el No del Puerto Local...", "Configurar simulacón...", "9000");
-                intPuertoLocal = Convert.ToInt16(strPuerto);
-                strPuerto = Microsoft.VisualBasic.Interaction.InputBox("Digite el No del Puerto Destino...", "Configurar simulacón...", "9000");
-                intPuertoDestino = Convert.ToInt16(strPuerto);
-            }
-            else
-            {
-                intPuertoLocal = 9000;
-                intPuertoDestino = 8000;
-            }
+                int intPuertoLocal;
+                DialogResult TipoGame = MessageBox.Show("Desea realizar una simulación local del juego?", "Seleccinar tipo de Juego", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (TipoGame == DialogResult.Yes)
+                {
+                    string strPuerto = Microsoft.VisualBasic.Interaction.InputBox("Digite el No del Puerto Local...", "Configurar simulacón...", "9000");
+                    intPuertoLocal = Convert.ToInt16(strPuerto);
+                    strPuerto = Microsoft.VisualBasic.Interaction.InputBox("Digite el No del Puerto Destino...", "Configurar simulacón...", "9000");
+                    intPuertoDestino = Convert.ToInt16(strPuerto);
+                }
+                else
+                {
+                    intPuertoLocal = 9000;
+                    intPuertoDestino = 8000;
+                }
 
-            construirTablero();
-            OcultarImages();
-            sock.Bind(new IPEndPoint(obtenerIPLocal(), intPuertoLocal));
-            sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
-            hiloReceiveData = new Thread(receiveData);
-            hiloReceiveData.Start();
+                construirTablero();
+                OcultarImages();
+                sock.Bind(new IPEndPoint(obtenerIPLocal(), intPuertoLocal));
+                sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
+                hiloReceiveData = new Thread(receiveData);
+                hiloReceiveData.Start();
+            }
+            catch (Exception error)
+            {
+
+            }
         }
 
         private IPAddress obtenerIPLocal()
@@ -85,15 +87,22 @@ namespace memoryGame_broadcast
 
         private void receiveData()
         {
-            while (swReceiveData)
+            try
             {
-                IPEndPoint ipRemota = new IPEndPoint(IPAddress.Any, 0);
-                EndPoint ipRecibida = (EndPoint)ipRemota;
-                byte[] bytesRecibidos = new byte[256];
-                sock.ReceiveFrom(bytesRecibidos, bytesRecibidos.Length, SocketFlags.None, ref ipRecibida);
-                strCommand = Encoding.Default.GetString(bytesRecibidos);
-                dirIp = ((IPEndPoint)ipRecibida).Address.ToString();
-                ejecutor();
+                while (swReceiveData)
+                {
+                    IPEndPoint ipRemota = new IPEndPoint(IPAddress.Any, 0);
+                    EndPoint ipRecibida = (EndPoint)ipRemota;
+                    byte[] bytesRecibidos = new byte[256];
+                    sock.ReceiveFrom(bytesRecibidos, bytesRecibidos.Length, SocketFlags.None, ref ipRecibida);
+                    strCommand = Encoding.Default.GetString(bytesRecibidos);
+                    dirIp = ((IPEndPoint)ipRecibida).Address.ToString();
+                    ejecutor();
+                }
+            }
+            catch (Exception error)
+            {
+
             }
         }
 
@@ -150,6 +159,8 @@ namespace memoryGame_broadcast
                         {
                             MessageBox.Show("El jugador "+ dirIpOponente + " canceló la partida. Tu ganas!","Game Over",MessageBoxButtons.OK,MessageBoxIcon.Information);
                             starter = false;
+                            strCommand = "3";
+                            enviarCommand();
                             terminarApp();
                             Application.Exit();
                         }
@@ -167,6 +178,7 @@ namespace memoryGame_broadcast
                                 if (intCommand == 5)
                                 {
                                     puntajeTu++;
+                                    ganador();
                                     txtPlayers.Invoke(new EventHandler(imprimirEstadisticas));
                                     token = false;
                                     lblToken.Invoke(new EventHandler(establecerToken));
@@ -186,7 +198,6 @@ namespace memoryGame_broadcast
                     }
                 }
             }
-
         }
 
         private void imprimirEstadisticas(object sender, EventArgs e)
@@ -219,7 +230,22 @@ namespace memoryGame_broadcast
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            btnExit_Click(null,null);
+            if (starter)
+            {
+                DialogResult gameOver = MessageBox.Show("¿Desea terminar el juego y perder?", "Game Over", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (gameOver == DialogResult.Yes)
+                {
+                    strCommand = "3";
+                    enviarCommand();
+                    terminarApp();
+                    Application.Exit();
+                }
+            }
+            else
+            {
+                terminarApp();
+                Application.Exit();
+            }
         }
 
         private void terminarApp()
@@ -312,6 +338,7 @@ namespace memoryGame_broadcast
                         lblToken.Invoke(new EventHandler(establecerToken));
                         strCommand = "5";
                         puntajeYo++;
+                        ganador();
                         txtPlayers.Invoke(new EventHandler(imprimirEstadisticas));
 
                     }
@@ -333,6 +360,32 @@ namespace memoryGame_broadcast
                     x = i;
                     y = j;
                 }
+            }
+        }
+
+        private void ganador()
+        {
+            int totalPuntos = puntajeTu + puntajeYo;
+            if (totalPuntos == 18)
+            {
+                starter = false;
+                if (puntajeYo > puntajeTu)
+                {
+                    MessageBox.Show("Eres el Ganador!"+"\r\n" + "Tu Puntaje: " + puntajeYo.ToString() + "\r\n" + "Tu Oponente: " + puntajeTu.ToString(),"Game Over",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
+                }
+                else
+                {
+                    if (puntajeYo > puntajeTu)
+                    {
+                        MessageBox.Show("Eres el Perdedor!" + "\r\n" + "Tu Puntaje: " + puntajeYo.ToString() + "\r\n" + "Tu Oponente: " + puntajeTu.ToString(), "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Empate!" + "\r\n" + "Tu Puntaje: " + puntajeYo.ToString() + "\r\n" + "Tu Oponente: " + puntajeTu.ToString(), "Game Over", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+                    }
+                }
+                terminarApp();
             }
         }
 
@@ -388,7 +441,6 @@ namespace memoryGame_broadcast
                     }
                 }
             }
-
         }
 
         private void OcultarImages()
@@ -415,24 +467,42 @@ namespace memoryGame_broadcast
 
         private void btnStartGame_Click(object sender, EventArgs e)
         {
-            strCommand = "0";
-            enviarCommand();
+            if (!starter)
+            {
+                strCommand = "0";
+                enviarCommand();
+            }
         }
 
         private void enviarCommand()
         {
-            IPEndPoint ipDestino = new IPEndPoint(IPAddress.Broadcast, intPuertoDestino);
-            byte[] bytesEnviar = Encoding.Default.GetBytes(strCommand);
-            sock.SendTo(bytesEnviar, bytesEnviar.Length, SocketFlags.None, ipDestino);
+            try
+            {
+                IPEndPoint ipDestino = new IPEndPoint(IPAddress.Broadcast, intPuertoDestino);
+                byte[] bytesEnviar = Encoding.Default.GetBytes(strCommand);
+                sock.SendTo(bytesEnviar, bytesEnviar.Length, SocketFlags.None, ipDestino);
+            }
+            catch (Exception error)
+            {
+
+            }
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            DialogResult gameOver = MessageBox.Show("¿Desea terminar el juego y perder?","Game Over",MessageBoxButtons.YesNo,MessageBoxIcon.Question);
-            if(gameOver == DialogResult.Yes)
+            if (starter)
             {
-                strCommand = "3";
-                enviarCommand();
+                DialogResult gameOver = MessageBox.Show("¿Desea terminar el juego y perder?", "Game Over", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (gameOver == DialogResult.Yes)
+                {
+                    strCommand = "3";
+                    enviarCommand();
+                    terminarApp();
+                    Application.Exit();
+                }
+            }
+            else
+            {
                 terminarApp();
                 Application.Exit();
             }
